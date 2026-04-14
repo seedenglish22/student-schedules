@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEED ENGLISH — スケジュール管理</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f9f8f6;--surface:#ffffff;--border:#e8e5e0;--border2:#d4d0ca;
+  --text:#1a1916;--text2:#6b6860;--text3:#9e9b96;
+  --accent:#1a1916;--accent-fg:#f9f8f6;
+  --green:#1D9E75;--blue:#185FA5;--amber:#BA7517;--pink:#993556;--purple:#534AB7;--coral:#D85A30;--lime:#639922;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+header{background:var(--surface);border-bottom:0.5px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.logo{font-size:13px;font-weight:600;letter-spacing:0.08em;color:var(--text)}
+.logo span{color:var(--text2);font-weight:400}
+.app{max-width:860px;margin:0 auto;padding:20px 16px}
+.tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:20px;overflow-x:auto}
+.tab{padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;font-family:inherit}
+.tab.active{color:var(--text);border-bottom:2px solid var(--text);font-weight:500}
+.section{display:none}.section.active{display:block}
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:500;margin-bottom:12px}
+.label{font-size:11px;color:var(--text2);margin-bottom:4px;letter-spacing:0.03em}
+input,select,textarea{width:100%;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--text)}
+textarea{resize:vertical;min-height:110px;line-height:1.6}
+.btn{padding:8px 16px;border:0.5px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;cursor:pointer;background:none;color:var(--text);font-family:inherit;transition:background 0.1s}
+.btn:hover{background:var(--bg)}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn-primary:hover{opacity:0.88}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-danger{color:#c0392b;border-color:#e8c5c5}
+.btn-danger:hover{background:#fff5f5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.row-c{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sp{height:12px}.sp-sm{height:6px}
+.student-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.student-row:last-child{border-bottom:none}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px}
+.tag-exam{background:#FAEEDA;color:#854F0B}
+.tag-event{background:#E1F5EE;color:#0F6E56}
+.tag-holiday{background:#FBEAF0;color:#993556}
+.tag-other{background:#f1f0ee;color:#5a5855}
+.imt-wrap{display:flex;border:0.5px solid var(--border2);border-radius:var(--radius-sm);overflow:hidden;width:fit-content;margin-bottom:14px}
+.imt{padding:7px 16px;font-size:12px;cursor:pointer;background:none;border:none;color:var(--text2);font-family:inherit}
+.imt.active{background:var(--accent);color:var(--accent-fg)}
+.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:28px;text-align:center;cursor:pointer;transition:background 0.1s}
+.drop-zone:hover,.drop-zone.over{background:var(--bg)}
+.drop-zone input[type=file]{display:none}
+.analyzing{display:none;padding:10px 14px;background:var(--bg);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);border:0.5px solid var(--border)}
+.analyzing.show{display:block}
+.msg-ok{color:var(--green);font-size:12px;margin-top:6px}
+.msg-err{color:#c0392b;font-size:12px;margin-top:6px}
+.filter-btn{padding:4px 12px;border:0.5px solid var(--border2);border-radius:10px;font-size:11px;cursor:pointer;background:none;color:var(--text2);font-family:inherit}
+.filter-btn.active{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.cal-wrap{overflow-x:auto}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(44px,1fr));gap:2px;min-width:320px}
+.cal-header{font-size:10px;color:var(--text3);text-align:center;padding:4px}
+.cal-day{min-height:56px;padding:4px;border:0.5px solid var(--border);border-radius:4px;background:var(--surface)}
+.cal-day.today{border-color:var(--text);border-width:1px}
+.cal-day.other-month{background:var(--bg);opacity:0.5}
+.day-num{font-size:10px;color:var(--text3);margin-bottom:2px}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin:1px}
+.month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.month-nav button{background:none;border:0.5px solid var(--border2);border-radius:var(--radius-sm);padding:4px 12px;cursor:pointer;color:var(--text);font-size:13px;font-family:inherit}
+.month-nav button:hover{background:var(--bg)}
+.ev-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border)}
+.ev-item:last-child{border-bottom:none}
+.ev-item input[type=text]{border:none;background:none;font-size:13px;font-weight:500;padding:0;width:100%}
+.ev-item input[type=text]:focus{outline:none;border-bottom:0.5px solid var(--border2)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.overview-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px}
+.pdf-info{background:var(--bg);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;color:var(--text2);margin-top:8px;display:none;border:0.5px solid var(--border)}
+.empty{font-size:13px;color:var(--text3);padding:8px 0}
+@media(max-width:600px){.grid2{grid-template-columns:1fr}.app{padding:12px 10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">SEED ENGLISH <span>スケジュール管理</span></div>
+  <div style="flex:1"></div>
+  <div id="hd-count" style="font-size:11px;color:var(--text3)"></div>
+</header>
+<div class="app">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('students')">生徒管理</button>
+    <button class="tab" onclick="switchTab('input')">スケジュール入力</button>
+    <button class="tab" onclick="switchTab('calendar')">カレンダー</button>
+    <button class="tab" onclick="switchTab('overview')">全体一覧</button>
+    <button class="tab" onclick="switchTab('export')">エクスポート</button>
+  </div>
+  <div id="sec-students" class="section active">
+    <div class="card">
+      <div class="card-title">新しい生徒を追加</div>
+      <div class="grid2">
+        <div><div class="label">生徒名</div><input id="s-name" type="text" placeholder="例：山田 花子"></div>
+        <div><div class="label">学校名</div><input id="s-school" type="text" placeholder="例：○○高校"></div>
+      </div>
+      <div class="sp-sm"></div>
+      <div class="grid2">
+        <div><div class="label">学年</div>
+          <select id="s-grade">
+            <option value="">学年を選択</option>
+            <option>高校1年</option><option>高校2年</option><option>高校3年</option>
+            <option>中学1年</option><option>中学2年</option><option>中学3年</option>
+            <option>大学生</option><option>社会人</option>
+          </select>
+        </div>
+        <div><div class="label">カレンダーの色</div>
+          <select id="s-color">
+            <option value="#1D9E75">グリーン</option>
+            <option value="#185FA5">ブルー</option>
+            <option value="#BA7517">アンバー</option>
+            <option value="#993556">ピンク</option>
+            <option value="#534AB7">パープル</option>
+            <option value="#D85A30">コーラル</option>
+            <option value="#639922">ライムグリーン</option>
+          </select>
+        </div>
+      </div>
+      <div class="sp-sm"></div>
+      <button class="btn btn-primary" onclick="addStudent()">追加する</button>
+      <div id="s-msg" style="display:none"></div>
+    </div>
+    <div class="card">
+      <div class="row-c" style="margin-bottom:12px">
+        <div class="card-title" style="margin:0;flex:1">生徒一覧（<span id="s-count">0</span>人）</div>
+        <input type="text" placeholder="名前・学校で検索" id="s-search" style="width:160px;font-size:12px" oninput="renderStudents()">
+      </div>
+      <div id="student-list"><div class="empty">生徒がいません。上のフォームから追加してください。</div></div>
+    </div>
+  </div>
+  <div id="sec-input" class="section">
+    <div class="card">
+      <div class="card-title">対象生徒</div>
+      <select id="i-student" style="width:auto;min-width:220px"><option value="">生徒を選択...</option></select>
+    </div>
+    <div class="card">
+      <div class="card-title">入力方法</div>
+      <div class="imt-wrap">
+        <button class="imt active" onclick="setMode('text',this)">LINEテキスト</button>
+        <button class="imt" onclick="setMode('pdf',this)">PDFファイル</button>
+        <button class="imt" onclick="setMode('manual',this)">手動入力</button>
+      </div>
+      <div id="mode-text">
+        <div class="label" style="margin-bottom:6px">保護者からのLINEテキストをそのまま貼り付けてください</div>
+        <textarea id="i-text" placeholder="例：&#10;4/15 中間テスト&#10;5/3〜5/5 GW休み&#10;6月20日 体育祭&#10;7/21〜8/31 夏休み"></textarea>
+        <div class="sp-sm"></div>
+        <div class="row">
+          <button class="btn btn-primary" onclick="analyzeText()">AIで解析</button>
+          <button class="btn" onclick="document.getElementById('i-text').value=''">クリア</button>
+        </div>
+      </div>
+      <div id="mode-pdf" style="display:none">
+        <div class="label" style="margin-bottom:8px">学校からのPDF行事予定表をアップロード</div>
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('pdf-input').click()"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="handleDrop(event)">
+          <input type="file" id="pdf-input" accept="application/pdf" onchange="handlePDFFile(this.files[0])">
+          <div style="font-size:13px;color:var(--text2)">クリックまたはドラッグ＆ドロップ</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">PDFファイル（.pdf）</div>
+        </div>
+        <div id="pdf-info" class="pdf-info"></div>
+        <div class="sp-sm"></div>
+        <button class="btn btn-primary" id="pdf-analyze-btn" style="display:none" onclick="analyzePDF()">PDFをAIで解析</button>
+      </div>
+      <div id="mode-manual" style="display:none">
+        <div class="grid2">
+          <div><div class="label">日付（開始）</div><input type="date" id="m-start"></div>
+          <div><div class="label">日付（終了・任意）</div><input type="date" id="m-end"></div>
+        </div>
+        <div class="sp-sm"></div>
+        <div class="grid2">
+          <div><div class="label">イベント名</div><input type="text" id="m-title" placeholder="例：定期テスト"></div>
+          <div><div class="label">種別</div>
+            <select id="m-type">
+              <option value="exam">試験・テスト</option>
+              <option value="event">学校行事</option>
+              <option value="holiday">休み</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+        </div>
+        <div class="sp-sm"></div>
+        <button class="btn btn-primary" onclick="addManualEvent()">追加</button>
+        <div id="m-msg" style="display:none"></div>
+      </div>
+      <div id="analyze-status" class="analyzing" style="margin-top:10px"></div>
+      <div id="analyze-err" style="display:none" class="msg-err"></div>
+    </div>
+    <div class="card" id="parsed-card" style="display:none">
+      <div class="row-c" style="margin-bottom:12px">
+        <div class="card-title" style="margin:0;flex:1">解析結果 <span id="parsed-count" style="font-size:11px;color:var(--text3);font-weight:400"></span></div>
+        <span style="font-size:11px;color:var(--text3)">名前を直接編集できます</span>
+      </div>
+      <div id="parsed-list"></div>
+      <div class="sp"></div>
+      <button class="btn btn-primary" onclick="saveEvents()">この生徒のスケジュールに保存</button>
+      <div id="save-msg" style="display:none"></div>
+    </div>
+  </div>
+  <div id="sec-calendar" class="section">
+    <div class="row-c" style="margin-bottom:14px;gap:8px">
+      <select id="c-student" style="width:auto;min-width:180px" onchange="renderCalendar()">
+        <option value="all">全生徒</option>
+      </select>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="filter-btn active" onclick="toggleFilter(this,'exam')">試験</button>
+        <button class="filter-btn active" onclick="toggleFilter(this,'event')">行事</button>
+        <button class="filter-btn active" onclick="toggleFilter(this,'holiday')">休み</button>
+        <button class="filter-btn active" onclick="toggleFilter(this,'other')">その他</button>
+      </div>
+    </div>
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <div style="font-size:15px;font-weight:500;flex:1" id="month-label"></div>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="cal-wrap">
+      <div class="cal-grid" id="cal-headers"></div>
+      <div class="sp-sm"></div>
+      <div class="cal-grid" id="cal-body"></div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div id="sec-overview" class="section">
+    <div class="row-c" style="margin-bottom:16px">
+      <div style="font-size:14px;font-weight:500;flex:1">全生徒 年間スケジュール</div>
+      <select id="o-month" onchange="renderOverview()" style="width:auto">
+        <option value="all">全期間</option>
+      </select>
+    </div>
+    <div id="overview-body"></div>
+  </div>
+  <div id="sec-export" class="section">
+    <div class="card">
+      <div class="card-title">Googleカレンダーへ書き出す</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.7">ICSファイルをダウンロードしてGoogleカレンダーにインポートできます。</div>
+      <div class="label">対象生徒</div>
+      <select id="e-student" style="width:auto;min-width:200px">
+        <option value="all">全生徒まとめて</option>
+      </select>
+      <div class="sp-sm"></div>
+      <button class="btn btn-primary" onclick="exportICS()">ICSファイルをダウンロード</button>
+      <div id="e-msg" style="display:none"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">インポート手順</div>
+      <ol style="font-size:13px;color:var(--text2);line-height:2.2;padding-left:18px">
+        <li>「ICSファイルをダウンロード」をクリック</li>
+        <li>Google カレンダーを開く（calendar.google.com）</li>
+        <li>左サイドバー「他のカレンダー」横の ＋ をクリック</li>
+        <li>「ファイルからインポート」を選択</li>
+        <li>ダウンロードした .ics ファイルを選んでインポート</li>
+      </ol>
+    </div>
+    <div class="card">
+      <div class="card-title">データのバックアップ</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.7">定期的にJSONで書き出しておくと安心です。別のPCや端末でも「読み込む」で復元できます。</div>
+      <div class="row">
+        <button class="btn" onclick="exportJSON()">JSONで書き出す</button>
+        <button class="btn" onclick="document.getElementById('import-file').click()">JSONを読み込む</button>
+      </div>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(this)">
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#c0392b">データを全削除</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px">全ての生徒・スケジュールデータを削除します。この操作は元に戻せません。</div>
+      <button class="btn btn-danger" onclick="clearAll()">全データを削除する</button>
+    </div>
+  </div>
+</div>
+<script>
+let students=JSON.parse(localStorage.getItem('seed_students')||'[]');
+let events=JSON.parse(localStorage.getItem('seed_events')||'[]');
+let calMonth=new Date();
+let activeFilters=new Set(['exam','event','holiday','other']);
+let parsedEvents=[];
+let currentMode='text';
+let pdfBase64=null;
+function save(){localStorage.setItem('seed_students',JSON.stringify(students));localStorage.setItem('seed_events',JSON.stringify(events));updateHeader();}
+function updateHeader(){document.getElementById('hd-count').textContent=students.length?`生徒 ${students.length}人`:'';}
+function switchTab(t){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));const idx=['students','input','calendar','overview','export'].indexOf(t);document.querySelectorAll('.tab')[idx].classList.add('active');document.getElementById('sec-'+t).classList.add('active');if(t==='input')populateSelects();if(t==='calendar'){populateSelects();renderCalendar();}if(t==='overview')renderOverview();if(t==='export')populateSelects();}
+function setMode(m,btn){currentMode=m;document.querySelectorAll('.imt').forEach(b=>b.classList.remove('active'));btn.classList.add('active');['text','pdf','manual'].forEach(id=>document.getElementById('mode-'+id).style.display=id===m?'block':'none');document.getElementById('parsed-card').style.display='none';document.getElementById('analyze-err').style.display='none';document.getElementById('analyze-status').className='analyzing';}
+function populateSelects(){['i-student','c-student','e-student'].forEach(id=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;const pre=id==='i-student'?'<option value="">生徒を選択...</option>':'<option value="all">全生徒</option>';el.innerHTML=pre+students.map(s=>`<option value="${s.id}">${s.name}（${s.school}）</option>`).join('');if(cur)el.value=cur;});const om=document.getElementById('o-month');if(om){let o='<option value="all">全期間</option>';for(let m=1;m<=12;m++)o+=`<option value="${m}">${m}月</option>`;om.innerHTML=o;}}
+function showMsg(id,text,isErr){const el=document.getElementById(id);el.textContent=text;el.className=isErr?'msg-err':'msg-ok';el.style.display='block';setTimeout(()=>el.style.display='none',2500);}
+function addStudent(){const name=document.getElementById('s-name').value.trim();const school=document.getElementById('s-school').value.trim();const grade=document.getElementById('s-grade').value;const color=document.getElementById('s-color').value;if(!name||!school){alert('生徒名と学校名を入力してください');return;}students.push({id:'s_'+Date.now(),name,school,grade,color});save();document.getElementById('s-name').value='';document.getElementById('s-school').value='';showMsg('s-msg',`${name}さんを追加しました`);renderStudents();}
+function renderStudents(){const q=document.getElementById('s-search').value.toLowerCase();const list=students.filter(s=>s.name.toLowerCase().includes(q)||s.school.toLowerCase().includes(q));document.getElementById('s-count').textContent=students.length;const el=document.getElementById('student-list');if(!list.length){el.innerHTML='<div class="empty">該当する生徒がいません</div>';return;}el.innerHTML=list.map(s=>{const evCount=events.filter(e=>e.studentId===s.id).length;const initials=s.name.replace(/\s/g,'').slice(0,2);return `<div class="student-row"><div class="avatar" style="background:${s.color}20;color:${s.color}">${initials}</div><div style="flex:1"><div style="font-size:13px;font-weight:500">${s.name}</div><div style="font-size:11px;color:var(--text2)">${s.school}${s.grade?' ・ '+s.grade:''}</div></div><div style="font-size:11px;color:var(--text3);margin-right:8px">${evCount}件</div><button class="btn btn-sm btn-danger" onclick="deleteStudent('${s.id}')">削除</button></div>`;}).join('');}
+function deleteStudent(id){if(!confirm('この生徒とスケジュールをすべて削除しますか？'))return;students=students.filter(s=>s.id!==id);events=events.filter(e=>e.studentId!==id);save();renderStudents();}
+const YEAR=new Date().getFullYear();
+const SYS=`あなたは日本の学校年間行事スケジュール抽出AIです。入力からイベントを抽出してJSON配列のみ返してください。前置き・説明不要。今年は${YEAR}年。年の記載がない場合は${YEAR}年とする。フォーマット：[{"title":"イベント名","start":"YYYY-MM-DD","end":"YYYY-MM-DD or null","type":"exam|event|holiday|other"}]type: exam=テスト・試験・模試・検定, event=体育祭・文化祭・式典・遠足等, holiday=休み・長期休暇・休校, other=その他`;
+async function callAI(content){const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:SYS,messages:[{role:'user',content}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);const txt=data.content?.[0]?.text||'';return JSON.parse(txt.replace(/```json|```/g,'').trim());}
+function setAnalyzing(msg){const el=document.getElementById('analyze-status');if(msg){el.className='analyzing show';el.textContent=msg;}else el.className='analyzing';document.getElementById('analyze-err').style.display='none';}
+function showErr(msg){document.getElementById('analyze-status').className='analyzing';const el=document.getElementById('analyze-err');el.textContent=msg;el.style.display='block';}
+async function analyzeText(){const sid=document.getElementById('i-student').value;const text=document.getElementById('i-text').value.trim();if(!sid){alert('生徒を選択してください');return;}if(!text){alert('テキストを入力してください');return;}setAnalyzing('AIが解析中です...');document.getElementById('parsed-card').style.display='none';try{parsedEvents=await callAI('以下のテキストから学校の年間行事を抽出してください：\n\n'+text);setAnalyzing();renderParsed();}catch(e){showErr('解析に失敗しました。'+e.message);}}
+function handleDrop(e){e.preventDefault();document.getElementById('drop-zone').classList.remove('over');const file=e.dataTransfer.files[0];if(file&&file.type==='application/pdf')handlePDFFile(file);else alert('PDFファイルをドロップしてください');}
+function handlePDFFile(file){if(!file)return;const reader=new FileReader();reader.onload=e=>{pdfBase64=e.target.result.split(',')[1];const info=document.getElementById('pdf-info');info.style.display='block';info.textContent=`✓ ${file.name}（${(file.size/1024).toFixed(1)} KB）`;document.getElementById('pdf-analyze-btn').style.display='inline-block';};reader.readAsDataURL(file);}
+async function analyzePDF(){const sid=document.getElementById('i-student').value;if(!sid){alert('生徒を選択してください');return;}if(!pdfBase64){alert('PDFを選択してください');return;}setAnalyzing('PDFを読み込んでAIが解析中です...');document.getElementById('parsed-card').style.display='none';try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:SYS,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:pdfBase64}},{type:'text',text:'このPDFは日本の学校の年間行事予定表です。全てのイベントを抽出してJSON配列で返してください。'}]}]})});const data=await res.json();if(data.error)throw new Error(data.error.message);parsedEvents=JSON.parse((data.content?.[0]?.text||'').replace(/```json|```/g,'').trim());setAnalyzing();renderParsed();}catch(e){showErr('PDF解析に失敗しました。'+e.message);}}
+const typeLabel={exam:'試験・テスト',event:'学校行事',holiday:'休み',other:'その他'};
+const typeClass={exam:'tag-exam',event:'tag-event',holiday:'tag-holiday',other:'tag-other'};
+function renderParsed(){if(!parsedEvents.length){showErr('イベントが見つかりませんでした');return;}document.getElementById('parsed-count').textContent=`${parsedEvents.length}件`;const el=document.getElementById('parsed-list');el.innerHTML=parsedEvents.map((ev,i)=>`<div class="ev-item"><span class="badge ${typeClass[ev.type]||'tag-other'}">${typeLabel[ev.type]||'その他'}</span><div style="flex:1"><input type="text" value="${ev.title}" onchange="parsedEvents[${i}].title=this.value"><div style="font-size:11px;color:var(--text3);margin-top:2px">${ev.start}${ev.end?' 〜 '+ev.end:''}</div></div><button class="btn btn-sm" onclick="parsedEvents.splice(${i},1);renderParsed()">✕</button></div>`).join('');document.getElementById('parsed-card').style.display='block';}
+function saveEvents(){const sid=document.getElementById('i-student').value;if(!sid||!parsedEvents.length)return;parsedEvents.forEach(ev=>{events.push({id:'e_'+Date.now()+'_'+Math.random().toString(36).slice(2),studentId:sid,...ev});});save();showMsg('save-msg',`${parsedEvents.length}件を保存しました`);document.getElementById('parsed-card').style.display='none';if(currentMode==='text')document.getElementById('i-text').value='';if(currentMode==='pdf'){pdfBase64=null;document.getElementById('pdf-info').style.display='none';document.getElementById('pdf-analyze-btn').style.display='none';}parsedEvents=[];}
+function addManualEvent(){const sid=document.getElementById('i-student').value;const start=document.getElementById('m-start').value;const title=document.getElementById('m-title').value.trim();const type=document.getElementById('m-type').value;const end=document.getElementById('m-end').value||null;if(!sid){alert('生徒を選択してください');return;}if(!start||!title){alert('日付とイベント名を入力してください');return;}events.push({id:'e_'+Date.now(),studentId:sid,title,start,end,type});save();['m-start','m-end','m-title'].forEach(id=>document.getElementById(id).value='');showMsg('m-msg','追加しました');}
+function changeMonth(d){calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+d,1);renderCalendar();}
+function toggleFilter(btn,type){btn.classList.toggle('active');if(activeFilters.has(type))activeFilters.delete(type);else activeFilters.add(type);renderCalendar();}
+function renderCalendar(){const sid=document.getElementById('c-student')?.value||'all';const y=calMonth.getFullYear(),m=calMonth.getMonth();document.getElementById('month-label').textContent=`${y}年${m+1}月`;const days=['日','月','火','水','木','金','土'];document.getElementById('cal-headers').innerHTML=days.map(d=>`<div class="cal-header">${d}</div>`).join('');const first=new Date(y,m,1).getDay();const last=new Date(y,m+1,0).getDate();const today=new Date();let cells='';for(let i=0;i<first;i++){const d=new Date(y,m,-(first-1-i));cells+=`<div class="cal-day other-month"><div class="day-num">${d.getDate()}</div></div>`;}for(let d=1;d<=last;d++){const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;const dayEvs=events.filter(e=>{if(sid!=='all'&&e.studentId!==sid)return false;if(!activeFilters.has(e.type))return false;return e.end?ds>=e.start&&ds<=e.end:e.start===ds;});const dots=dayEvs.map(e=>{const s=students.find(st=>st.id===e.studentId);return `<span class="dot" style="background:${s?s.color:'#888'}" title="${s?s.name:''}：${e.title}"></span>`;}).join('');cells+=`<div class="cal-day${isToday?' today':''}"><div class="day-num">${d}</div>${dots}</div>`;}document.getElementById('cal-body').innerHTML=cells;const activeSt=sid==='all'?students:students.filter(s=>s.id===sid);document.getElementById('legend').innerHTML=activeSt.map(s=>`<div class="legend-item"><span class="dot" style="background:${s.color}"></span>${s.name}</div>`).join('');}
+function renderOverview(){const fm=document.getElementById('o-month')?.value||'all';const el=document.getElementById('overview-body');if(!students.length){el.innerHTML='<div class="empty">生徒がいません</div>';return;}el.innerHTML=students.map(s=>{let evs=events.filter(e=>e.studentId===s.id);if(fm!=='all')evs=evs.filter(e=>parseInt(e.start.split('-')[1])===parseInt(fm));evs.sort((a,b)=>a.start.localeCompare(b.start));const initials=s.name.replace(/\s/g,'').slice(0,2);return `<div class="overview-card"><div class="row-c" style="margin-bottom:8px"><div class="avatar" style="background:${s.color}20;color:${s.color};width:28px;height:28px;font-size:11px">${initials}</div><div style="font-size:13px;font-weight:500;flex:1">${s.name} <span style="font-size:11px;color:var(--text2);font-weight:400">/ ${s.school}${s.grade?' '+s.grade:''}</span></div><div style="font-size:11px;color:var(--text3)">${evs.length}件</div></div>${evs.length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${evs.map(e=>`<span class="badge ${typeClass[e.type]||'tag-other'}">${e.start.slice(5).replace('-','/')} ${e.title}</span>`).join('')}</div>`:'<div class="empty" style="padding:4px 0">スケジュールなし</div>'}</div>`;}).join('');}
+function exportICS(){const sid=document.getElementById('e-student').value;const evs=sid==='all'?events:events.filter(e=>e.studentId===sid);if(!evs.length){alert('エクスポートするイベントがありません');return;}const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//SEED ENGLISH//Schedule//JA','CALSCALE:GREGORIAN'];evs.forEach(ev=>{const s=students.find(st=>st.id===ev.studentId);const sn=s?` [${s.name}]`:'';const sd=ev.start.replace(/-/g,'');const endDate=new Date(ev.end||ev.start);endDate.setDate(endDate.getDate()+1);const ed=endDate.toISOString().slice(0,10).replace(/-/g,'');lines.push('BEGIN:VEVENT',`DTSTART;VALUE=DATE:${sd}`,`DTEND;VALUE=DATE:${ed}`,`SUMMARY:${ev.title}${sn}`,`DESCRIPTION:種別:${ev.type}`,`UID:${ev.id}@seed-english`,'END:VEVENT');});lines.push('END:VCALENDAR');dl(new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'}),'seed_schedule.ics');showMsg('e-msg',`${evs.length}件をエクスポートしました`);}
+function exportJSON(){dl(new Blob([JSON.stringify({students,events},null,2)],{type:'application/json'}),'seed_english_data.json');}
+function importJSON(input){const file=input.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{const data=JSON.parse(e.target.result);if(data.students)students=data.students;if(data.events)events=data.events;save();renderStudents();alert('データを読み込みました');}catch{alert('ファイルの形式が正しくありません');}};r.readAsText(file);}
+function clearAll(){if(!confirm('全ての生徒・スケジュールデータを削除します。この操作は元に戻せません。よろしいですか？'))return;students=[];events=[];save();renderStudents();alert('削除しました');}
+function dl(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+renderStudents();populateSelects();updateHeader();
+</script>
+</body>
+</html>
